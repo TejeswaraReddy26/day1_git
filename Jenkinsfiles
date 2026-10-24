@@ -1,0 +1,101 @@
+
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    stages {
+
+        stage('Inspect Repository') {
+            steps {
+                echo 'Inspecting the checked-out repository'
+                sh 'pwd'
+                sh 'ls -la'
+            }
+        }
+
+        stage('Validate Source') {
+            steps {
+                echo 'Validating source files'
+
+                sh '''
+                    set -eu
+
+                    test -f Jenkinsfile
+                    test -f events.md
+
+                    echo "Source validation successful"
+                '''
+            }
+        }
+
+        stage('Build Artifact') {
+            steps {
+                echo 'Creating build artifact'
+
+                sh '''
+                    set -eu
+
+                    mkdir -p build-output
+
+                    cat > build-output/event-report.txt <<EOF
+Community Event Pipeline Report
+Build Number: ${BUILD_NUMBER}
+Job Name: ${JOB_NAME}
+Status: Build output created successfully
+EOF
+
+                    test -s build-output/event-report.txt
+
+                    cat build-output/event-report.txt
+                '''
+            }
+        }
+
+        stage('Test Artifact') {
+            steps {
+                echo 'Testing generated artifact'
+
+                sh '''
+                    set -eu
+
+                    test -f build-output/event-report.txt
+                    test -s build-output/event-report.txt
+
+                    grep -q "Community Event Pipeline Report" \
+                        build-output/event-report.txt
+
+                    echo "Artifact test passed successfully"
+                '''
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                echo 'Archiving generated artifact'
+
+                archiveArtifacts(
+                    artifacts: 'build-output/event-report.txt',
+                    fingerprint: true
+                )
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
+        }
+
+        always {
+            echo 'Pipeline execution finished'
+        }
+    }
+}
