@@ -66,11 +66,11 @@ pipeline {
 
     post {
         success {
-            echo 'CI pipeline completed successfully'
+            echo 'pipeline completed successfully'
         }
 
         failure {
-            echo 'CI pipeline failed. Check the stage logs.'
+            echo 'pipeline failed. Check Console Output.'
         }
 
         always {
