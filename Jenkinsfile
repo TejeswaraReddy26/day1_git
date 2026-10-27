@@ -42,7 +42,7 @@ pipeline {
                 '''
             }
         }
-
+        
         stage('Test Artifact') {
             steps {
                 sh '''
@@ -53,7 +53,13 @@ pipeline {
                 '''
             }
         }
-
+        stage('Show Build Details') {
+             steps {
+                 echo "Job name: ${env.JOB_NAME}"
+                 echo "Build number: ${env.BUILD_NUMBER}"
+                 echo "Build URL: ${env.BUILD_URL}"
+            }
+          }
         stage('Archive Artifact') {
             steps {
                 archiveArtifacts(
